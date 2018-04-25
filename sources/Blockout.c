@@ -6,7 +6,7 @@
 Copyright (C) 2013-2018 Manuel Sainz de Baranda y Goñi.
 Released under the terms of the GNU Lesser General Public License v3. */
 
-#include <Z/functions/base/Z3DValue.h>
+#include <Z/functions/base/Z3D.h>
 
 #ifndef BLOCKOUT_STATIC
 #	define BLOCKOUT_API Z_API_EXPORT
