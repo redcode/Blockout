@@ -61,17 +61,17 @@ Z_DEFINE_STRICT_UNION (
 
 typedef struct {
 	BlockoutCell matrix[5][5][5];
-	Z3DUInt8     a, b;
+	Z3DSInt8     a, b;
 } BlockoutPiece;
 
 typedef struct {
 	BlockoutCell*  matrix;
-	Z3DUInt	       size;
-	zuint	       top;
+	Z3DSInt8       size;
+	zsint8	       top;
 	BlockoutPiece* piece;
 	BlockoutPiece* next_piece;
-	Z3DSInt	       piece_point;
-	zuint	       full_plane_indices[5];
+	Z3DSInt8       piece_point;
+	zsint8	       full_plane_indices[5];
 	zuint8	       full_plane_count;
 	zuint8	       piece_index;
 	zuint8	       next_piece_index;
@@ -94,7 +94,7 @@ BLOCKOUT_API void	    blockout_initialize	       (Blockout*      object);
 BLOCKOUT_API void	    blockout_finalize	       (Blockout*      object);
 
 BLOCKOUT_API ZStatus	    blockout_prepare	       (Blockout*      object,
-							Z3DUInt	       size,
+							Z3DSInt8       size,
 							zuint8	       next_piece_set,
 							zuint8	       next_piece_index);
 

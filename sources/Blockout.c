@@ -67,7 +67,7 @@ static zuint8 const polycube_indices[2][8] = {
 static void blockout_piece_update_faces(BlockoutPiece *piece)
 	{
 	BlockoutCell *cell;
-	zuint8 x, y, z;
+	zsint8 x, y, z;
 
 	for (z = piece->a.z; z <= piece->b.z; z++)
 		for (y = piece->a.y; y <= piece->b.y; y++)
@@ -102,22 +102,23 @@ BLOCKOUT_API void blockout_piece_build(
 )
 	{
 	BlockoutCell *cell;
-	zuint8 x, y, z, offset = 0;
+	zsint8 x, y, z;
+	zuint8 offset = 0;
 
 	zuint32 polycube = polycubes
 		[piece_set ? polycube_indices[piece_set - 1][piece_index] : piece_index];
 
-	piece->a = z_3d_uint8
+	piece->a = z_3d_sint8
 		( polycube >> 30,
 		 (polycube >> 28) & 3,
 		 (polycube >> 26) & 3);
 
-	piece->b = z_3d_uint8
-		(piece->a.x + ((polycube >> 23) & 7),
-		 piece->a.y + ((polycube >> 20) & 7),
-		 piece->a.z + ((polycube >> 17) & 7));
+	piece->b = z_3d_sint8
+		(piece->a.x + (zsint8)((polycube >> 23) & 7),
+		 piece->a.y + (zsint8)((polycube >> 20) & 7),
+		 piece->a.z + (zsint8)((polycube >> 17) & 7));
 
-	z_block_int8_set(piece->matrix, 125 * sizeof(BlockoutCell), 0);
+	z_block_int8_set(piece->matrix, sizeof(BlockoutCell) * 5 * 5 * 5, 0);
 
 	for (z = piece->a.z; z <= piece->b.z; z++)
 		for (y = piece->a.y; y <= piece->b.y; y++)
@@ -136,16 +137,16 @@ BLOCKOUT_API void blockout_piece_build(
 static zuint8 bounds_hit(
 	Blockout const*	     object,
 	BlockoutPiece const* piece,
-	Z3DSInt		     piece_point
+	Z3DSInt8	     piece_point
 )
 	{
-	return	piece_point.x + piece->a.x <  0			    ||
-		piece_point.x + piece->b.x >= (zsint)object->size.x ||
-		piece_point.y + piece->a.y <  0			    ||
-		piece_point.y + piece->b.y >= (zsint)object->size.y ||
+	return	piece_point.x + piece->a.x <  0		     ||
+		piece_point.x + piece->b.x >= object->size.x ||
+		piece_point.y + piece->a.y <  0		     ||
+		piece_point.y + piece->b.y >= object->size.y ||
 		piece_point.z + piece->a.z <  0
 			? HIT_BOUNDS
-			: (piece_point.z + piece->b.z >= (zsint)object->size.z
+			: (piece_point.z + piece->b.z >= object->size.z
 				? HIT_BOTTOM : 0);
 	}
 
@@ -153,10 +154,10 @@ static zuint8 bounds_hit(
 static zboolean content_hit(
 	Blockout const*	     object,
 	BlockoutPiece const* piece,
-	Z3DSInt		     piece_point
+	Z3DSInt8	     piece_point
 )
 	{
-	zuint x, y, z, plane_size = object->size.x * object->size.y;
+	zsint x, y, z, plane_size = object->size.x * object->size.y;
 
 	for (z = piece->a.z; z <= piece->b.z; z++)
 		for (y = piece->a.y; y <= piece->b.y; y++)
@@ -176,8 +177,8 @@ static zboolean content_hit(
 
 static void consolidate(Blockout *object)
 	{
-	zuint x, y, z;
-	zuint plane_size = object->size.x * object->size.y;
+	zsint x, y, z;
+	zsint plane_size = object->size.x * object->size.y;
 	BlockoutPiece const *piece = object->piece;
 	zuint16 cell;
 
@@ -196,22 +197,22 @@ static void consolidate(Blockout *object)
 
 		if (PLANE_IS_FULL
 			(&object->matrix[plane_size * (object->piece_point.z + z)].value,
-			 plane_size)
+			 (zusize)plane_size)
 		)
 			object->full_plane_indices[object->full_plane_count++]
-			= object->piece_point.z + z;
+			= (zsint8)(object->piece_point.z + z);
 		}
 
-	if (object->piece_point.z + piece->a.z < (zsint)object->top)
+	if (object->piece_point.z + piece->a.z < object->top)
 		object->top = object->piece_point.z + piece->a.z;
 	}
 
 
 #define REVERSE(axis) point.axis = 4 - point.axis
-#define SWAP(axis1, axis2) z_uint8_swap(&point.axis1, &point.axis2)
+#define SWAP(axis1, axis2) z_sint8_swap(&point.axis1, &point.axis2)
 
 
-static Z3DUInt8 piece_point_rotate(Z3DUInt8 point, Z3DSInt8 rotation)
+static Z3DSInt8 piece_point_rotate(Z3DSInt8 point, Z3DSInt8 rotation)
 	{
 	switch (rotation.x % 4)
 		{
@@ -244,7 +245,7 @@ static Z3DUInt8 piece_point_rotate(Z3DUInt8 point, Z3DSInt8 rotation)
 BLOCKOUT_API void blockout_initialize(Blockout *object)
 	{
 	object->matrix = NULL;
-	object->size   = z_3d_type_zero(UINT);
+	object->size   = z_3d_sint8_zero;
 	}
 
 
@@ -254,7 +255,7 @@ BLOCKOUT_API void blockout_finalize(Blockout *object)
 
 BLOCKOUT_API ZStatus blockout_prepare(
 	Blockout* object,
-	Z3DUInt	  size,
+	Z3DSInt8  size,
 	zuint8	  next_piece_set,
 	zuint8	  next_piece_index
 )
@@ -267,19 +268,11 @@ BLOCKOUT_API ZStatus blockout_prepare(
 	)
 		return Z_ERROR_TOO_SMALL;
 
-	if (	size.x > (zuint)Z_SINT_MAXIMUM ||
-		size.y > (zuint)Z_SINT_MAXIMUM ||
-		size.z > (zuint)Z_SINT_MAXIMUM ||
-		z_type_multiplication_overflows_3(UINT)(size.x, size.y, size.z)
-	)
-		return Z_ERROR_TOO_BIG;
-
-	if (	z_3d_type_inner_product(UINT)(object->size) !=
-		(matrix_size = z_3d_type_inner_product(UINT)(size))
+	if (	(zusize)(object->size.x * object->size.y * object->size.z) !=
+		(matrix_size = (zusize)(size.x * size.y * size.z))
 	)
 		{
-		void *matrix = z_reallocate
-			(object->matrix, matrix_size * sizeof(BlockoutCell));
+		void *matrix = z_reallocate(object->matrix, matrix_size * sizeof(BlockoutCell));
 
 		if (matrix == NULL) return Z_ERROR_NOT_ENOUGH_MEMORY;
 		object->matrix = matrix;
@@ -307,12 +300,13 @@ BLOCKOUT_API zboolean blockout_insert_piece(
 	{
 	object->piece_index	 = object->next_piece_index;
 	object->next_piece_index = next_piece_index;
+
 	z_type_swap(UINTPTR)(&object->piece, &object->next_piece);
 	blockout_piece_build(object->next_piece, next_piece_set, next_piece_index);
 
 	return !content_hit
 		(object, object->piece,
-		 object->piece_point = z_3d_type(SINT)
+		 object->piece_point = z_3d_sint8
 			((object->size.x - 5) / 2,
 			 (object->size.y - 5) / 2,
 			 -object->piece->a.z));
@@ -321,13 +315,8 @@ BLOCKOUT_API zboolean blockout_insert_piece(
 
 BLOCKOUT_API BlockoutResult blockout_move_piece(Blockout *object, Z3DSInt8 movement)
 	{
-	BlockoutPiece *piece = object->piece;
-
-	Z3DSInt point = z_3d_type(SINT)
-		(object->piece_point.x + movement.x,
-		 object->piece_point.y + movement.y,
-		 object->piece_point.z + movement.z);
-
+	BlockoutPiece const *piece = object->piece;
+	Z3DSInt8 point = z_3d_sint8_add(object->piece_point, movement);
 	zuint8 hit = bounds_hit(object, piece, point);
 
 	if (hit)
@@ -353,26 +342,26 @@ BLOCKOUT_API BlockoutResult blockout_rotate_piece(Blockout *object, Z3DSInt8 rot
 	{
 	BlockoutPiece *piece = object->piece;
 	BlockoutPiece rotated_piece;
-	Z3DUInt8 a = piece_point_rotate(piece->a, rotation);
-	Z3DUInt8 b = piece_point_rotate(piece->b, rotation);
-	zuint x, y, z;
+	Z3DSInt8 a = piece_point_rotate(piece->a, rotation);
+	Z3DSInt8 b = piece_point_rotate(piece->b, rotation);
+	zsint x, y, z;
 	zuint16 cell;
-	Z3DUInt8 point;
+	Z3DSInt8 point;
 
-	rotated_piece.b = z_3d_uint8_maximum(a, b);
-	rotated_piece.a = z_3d_uint8_minimum(a, b);
+	rotated_piece.a = z_3d_sint8_minimum(a, b);
+	rotated_piece.b = z_3d_sint8_maximum(a, b);
 
 	if (bounds_hit(object, &rotated_piece, object->piece_point))
 		return BLOCKOUT_RESULT_HIT;
 
-	z_block_int8_set(rotated_piece.matrix, 125 * sizeof(BlockoutCell), 0);
+	z_block_int8_set(rotated_piece.matrix, sizeof(BlockoutCell) * 5 * 5 * 5, 0);
 
 	for (z = piece->a.z; z <= piece->b.z; z++)
 		for (y = piece->a.y; y <= piece->b.y; y++)
 			for (x = piece->a.x; x <= piece->b.x; x++)
 				if ((cell = piece->matrix[z][y][x].value))
 		{
-		point = piece_point_rotate(z_3d_uint8(x, y, z), rotation);
+		point = piece_point_rotate(z_3d_sint8(x, y, z), rotation);
 
 		rotated_piece.matrix[point.z][point.y][point.x].value
 		= cell & (BLOCKOUT_CELL_MASK_SOLID | BLOCKOUT_CELL_MASK_PIECE_INDEX);
@@ -389,8 +378,8 @@ BLOCKOUT_API BlockoutResult blockout_rotate_piece(Blockout *object, Z3DSInt8 rot
 
 BLOCKOUT_API void blockout_drop_piece(Blockout *object)
 	{
-	BlockoutPiece *piece = object->piece;
-	Z3DSInt point = object->piece_point;
+	BlockoutPiece const *piece = object->piece;
+	Z3DSInt8 point = object->piece_point;
 
 	for (	point.z++;
 		!bounds_hit(object, piece, point) && !content_hit(object, piece, point);
@@ -411,9 +400,8 @@ BLOCKOUT_API void blockout_remove_full_planes(Blockout *object)
 
 	if (plane_count)
 		{
-		zuint *full_plane_indices = object->full_plane_indices;
-		zuint delta = 0, size, plane_size = object->size.x * object->size.y;
-		zuint8 index;
+		zsint8 *full_plane_indices = object->full_plane_indices;
+		zsint delta = 0, index, size, plane_size = object->size.x * object->size.y;
 		BlockoutCell *matrix = object->matrix, *plane, *plane_above, *plane_below, cell;
 
 		while (plane_count)
@@ -438,17 +426,17 @@ BLOCKOUT_API void blockout_remove_full_planes(Blockout *object)
 
 			if ((size = full_plane_indices[index] - full_plane_indices[index - 1] - 1))
 				z_move	(PLANES(full_plane_indices[index - 1] + 1),
-					 plane_size * size * sizeof(BlockoutCell),
+					 sizeof(BlockoutCell) * (zusize)(plane_size * size),
 					 PLANES(full_plane_indices[index - 1] + 1 + delta));
 			}
 
 		z_move	(PLANES(object->top),
-			 plane_size * (full_plane_indices[0] - object->top) * sizeof(BlockoutCell),
+			 sizeof(BlockoutCell) * (zusize)(plane_size * (full_plane_indices[0] - object->top)),
 			 PLANES(object->top + plane_count));
 
 		z_block_int8_set
 			(PLANES(object->top),
-			 plane_size * plane_count * sizeof(BlockoutCell), 0);
+			 sizeof(BlockoutCell) * (zusize)(plane_size * plane_count), 0);
 
 		object->full_plane_count = 0;
 		object->top += plane_count;
