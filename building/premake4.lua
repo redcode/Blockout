@@ -7,7 +7,7 @@ solution "Blockout"
 		files {"../sources/**.c"}
 		includedirs {"../API/C"}
 		defines {"BLOCKOUT_USE_C_STANDARD_LIBRARY"}
-		--buildoptions {"-std=c89 -pedantic"}
+		--buildoptions {"-std=c89 -pedantic -Wall"}
 
 		configuration "Release*"
 			targetdir "lib/release"
