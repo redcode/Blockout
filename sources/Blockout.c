@@ -140,13 +140,12 @@ static zuint8 bounds_hit(
 	Z3DSInt8	     piece_point
 )
 	{
-	return	piece_point.x + piece->a.x <  0		     ||
-		piece_point.x + piece->b.x >= object->size.x ||
-		piece_point.y + piece->a.y <  0		     ||
-		piece_point.y + piece->b.y >= object->size.y ||
-		piece_point.z + piece->a.z <  0
+	return	(zsint)piece_point.x + piece->a.x <  0		    ||
+		(zsint)piece_point.x + piece->b.x >= object->size.x ||
+		(zsint)piece_point.y + piece->a.y <  0		    ||
+		(zsint)piece_point.y + piece->b.y >= object->size.y
 			? HIT_BOUNDS
-			: (piece_point.z + piece->b.z >= object->size.z
+			: ((zsint)piece_point.z + piece->b.z >= object->size.z
 				? HIT_BOTTOM : 0);
 	}
 
@@ -157,7 +156,7 @@ static zboolean content_hit(
 	Z3DSInt8	     piece_point
 )
 	{
-	zsint x, y, z, plane_size = object->size.x * object->size.y;
+	zsint x, y, z, plane_size = (zsint)object->size.x * (zsint)object->size.y;
 
 	for (z = piece->a.z; z <= piece->b.z; z++)
 		for (y = piece->a.y; y <= piece->b.y; y++)
@@ -361,7 +360,9 @@ BLOCKOUT_API BlockoutResult blockout_rotate_piece(Blockout *object, Z3DSInt8 rot
 			for (x = piece->a.x; x <= piece->b.x; x++)
 				if ((cell = piece->matrix[z][y][x].value))
 		{
-		point = piece_point_rotate(z_3d_sint8(x, y, z), rotation);
+		point = piece_point_rotate
+			(z_3d_sint8((zsint8)x, (zsint8)y, (zsint8)z),
+			 rotation);
 
 		rotated_piece.matrix[point.z][point.y][point.x].value
 		= cell & (BLOCKOUT_CELL_MASK_SOLID | BLOCKOUT_CELL_MASK_PIECE_INDEX);
