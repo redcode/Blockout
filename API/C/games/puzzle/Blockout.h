@@ -20,9 +20,9 @@ Released under the terms of the GNU Lesser General Public License v3. */
 #	endif
 #endif
 
-#define BLOCKOUT_MINIMUM_SIZE_X	5
-#define BLOCKOUT_MINIMUM_SIZE_Y	5
-#define BLOCKOUT_MINIMUM_SIZE_Z	10
+#define BLOCKOUT_MINIMUM_SIZE_X 5
+#define BLOCKOUT_MINIMUM_SIZE_Y 5
+#define BLOCKOUT_MINIMUM_SIZE_Z 10
 
 #define BLOCKOUT_PIECE_SET_BASIC    1
 #define BLOCKOUT_PIECE_SET_FLAT     2
