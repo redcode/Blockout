@@ -5,7 +5,7 @@ solution "Blockout"
 		language "C"
 		flags {"ExtraWarnings"}
 		files {"../sources/**.c"}
-		includedirs {"../API/C"}
+		includedirs {"../API"}
 		defines {"BLOCKOUT_USE_C_STANDARD_LIBRARY"}
 		--buildoptions {"-std=c89 -pedantic -Wall"}
 
