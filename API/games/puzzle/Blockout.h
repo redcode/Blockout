@@ -66,11 +66,11 @@ typedef struct {
 
 typedef struct {
 	BlockoutCell*  matrix;
-	Z3DSInt8       size;
-	zsint8	       top;
 	BlockoutPiece* piece;
 	BlockoutPiece* next_piece;
 	Z3DSInt8       piece_point;
+	Z3DSInt8       size;
+	zsint8	       top;
 	zsint8	       full_plane_indices[5];
 	zuint8	       full_plane_count;
 	zuint8	       piece_index;
