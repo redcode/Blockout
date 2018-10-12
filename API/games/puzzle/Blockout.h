@@ -6,8 +6,8 @@
 Copyright (C) 2013-2018 Manuel Sainz de Baranda y Goñi.
 Released under the terms of the GNU Lesser General Public License v3. */
 
-#ifndef __games_puzzle_Blockout_H__
-#define __games_puzzle_Blockout_H__
+#ifndef _games_puzzle_Blockout_H_
+#define _games_puzzle_Blockout_H_
 
 #include <Z/types/base.h>
 #include <Z/keys/status.h>
@@ -114,4 +114,4 @@ BLOCKOUT_API void	    blockout_remove_full_planes(Blockout*      object);
 
 Z_C_SYMBOLS_END
 
-#endif /* __games_puzzle_Blockout_H__ */
+#endif /* _games_puzzle_Blockout_H_ */
