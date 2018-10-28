@@ -1,7 +1,7 @@
-/* Blockout Kit C API - Blockout.h
-   ____   ___		  ___		      ___
-  /  _ ) /  /____  _____ /  /__ ____  __ ___ /	/_
- /  _  \/  //  _ \/   _//    _//  _ \/	/  //  __/
+/* Blockout Kit API - Blockout.h
+   ____   ___             ___                 ___
+  /  _ ) /  /____  _____ /  /__ ____  __ ___ /  /_
+ /  _  \/  //  _ \/   _//    _//  _ \/  /  //  __/
 /______/\__/\____/\____/__/\__/\____/\___,_/\__/
 Copyright (C) 2013-2018 Manuel Sainz de Baranda y Goñi.
 Released under the terms of the GNU Lesser General Public License v3. */
